@@ -12,12 +12,21 @@
     </header>
     <div class="container">
         {% if recent_post %}
-            <div class="card">
-                <p><strong>pH:</strong> {{ recent_post.PH }}</p>
-                <p><strong>Turbidity:</strong> {{ recent_post.TURBIDITY }}</p>
-                <p><strong>TDS:</strong> {{ recent_post.TDS }}</p>
-                <p><strong>Timestamp:</strong> {{ recent_post.timestamp }}</p>
+            <div class="sensor-boxes">
+                <div class="sensor-box turbidity">
+                    <div class="sensor-header">Turbidity</div>
+                    <p><strong>{{ recent_post.TURBIDITY }}</strong></p>
+                </div>
+                <div class="sensor-box tds">
+                    <div class="sensor-header">TDS</div>
+                    <p><strong>{{ recent_post.TDS }}</strong></p>
+                </div>
+                <div class="sensor-box ph">
+                    <div class="sensor-header">pH</div>
+                    <p><strong>{{ recent_post.PH }}</strong></p>
+                </div>
             </div>
+            <p><strong>Timestamp:</strong> {{ recent_post.timestamp }}</p>
         {% else %}
             <p>No sensor data available.</p>
         {% endif %}
