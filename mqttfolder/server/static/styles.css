@@ -30,6 +30,7 @@
     font-weight: bold;
     padding: 10px;
     border-radius: 5px 5px 0 0;
+    transition: background-color 0.3s ease;
 }
 
 .sensor-box.turbidity .sensor-header {
@@ -44,8 +45,27 @@
     background-color: #FF6347; /* Tomato */
 }
 
+/* Hover effect for sensor headers */
+.sensor-header:hover {
+    background-color: rgba(70, 130, 180, 0.8); /* Slightly darker on hover */
+}
+
 /* Header styling */
 .main-header {
     text-align: center;
     margin-bottom: 20px;
+    background-color: rgba(70, 130, 180, 0.5); /* Transparent bluish hue */
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.main-header:hover {
+    background-color: rgba(70, 130, 180, 0.8); /* Slightly more opaque on hover */
+}
+
+/* General styles for text */
+p {
+    margin: 10px 0;
 }

@@ -28,7 +28,20 @@
             </div>
             <p><strong>Timestamp:</strong> {{ recent_post.timestamp }}</p>
         {% else %}
-            <p>No sensor data available.</p>
+            <div class="sensor-boxes">
+                <div class="sensor-box turbidity">
+                    <div class="sensor-header">Turbidity</div>
+                    <p><strong>-</strong></p>
+                </div>
+                <div class="sensor-box tds">
+                    <div class="sensor-header">TDS</div>
+                    <p><strong>-</strong></p>
+                </div>
+                <div class="sensor-box ph">
+                    <div class="sensor-header">pH</div>
+                    <p><strong>-</strong></p>
+                </div>
+            </div>
         {% endif %}
     </div>
 </body>
