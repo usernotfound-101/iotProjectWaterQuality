@@ -6,15 +6,19 @@
     <title>Most Recent post</title>
 </head>
 <body>
-    <h1>Most recent sensor data</h1>
-    {% if recent_post %}
-    <ul>
-        {% for key, value in recent_post.items() %}
-            <li>{{ key }}: {{ value }}</li>
-        {% endfor %}
-    {% else %}
-        <p>No recent post available.</p>
-    {% endif %} 
-    </ul>
+    <header class="main-header">
+        <h1>Latest Water Quality Readings</h1>
+    </header>
+    <div class="container">
+        {% if recent_post %}
+            <div class="card">
+                <p><strong>pH:</strong> {{ recent_post.PH }}</p>
+                <p><strong>Turbidity:</strong> {{ recent_post.TURBIDITY }}</p>
+                <p><strong>TDS:</strong> {{ recent_post.TDS }}</p>
+            </div>
+        {% else %}
+            <p>No sensor data available.</p>
+        {% endif %}
+    </div>
 </body>
 </head>

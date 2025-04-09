@@ -1,0 +1,17 @@
+.main-header {
+    background-color: rgba(0, 119, 204, 0.6); /* Transparent blue */
+    padding: 20px 0;
+    text-align: center;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.main-header:hover {
+    background-color: rgba(0, 119, 204, 0.9); /* More opaque on hover */
+}
+
+.main-header h1 {
+    color: white;
+    margin: 0;
+    font-size: 28px;
+}
