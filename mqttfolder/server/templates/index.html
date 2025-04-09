@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Most Recent post</title>
+</head>
+<body>
+    <h1>Most recent sensor data</h1>
+    {% if recent_post %}
+    <ul>
+        {% for key, value in recent_post.items() %}
+            <li>{{ key }}: {{ value }}</li>
+        {% endfor %}
+    {% else %}
+        <p>No recent post available.</p>
+    {% endif %} 
+    </ul>
+</body>
+</head>
