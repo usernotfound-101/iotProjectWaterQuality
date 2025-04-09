@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Most Recent post</title>
+    <title>Most Recent Post</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <header class="main-header">
@@ -15,10 +16,11 @@
                 <p><strong>pH:</strong> {{ recent_post.PH }}</p>
                 <p><strong>Turbidity:</strong> {{ recent_post.TURBIDITY }}</p>
                 <p><strong>TDS:</strong> {{ recent_post.TDS }}</p>
+                <p><strong>Timestamp:</strong> {{ recent_post.timestamp }}</p>
             </div>
         {% else %}
             <p>No sensor data available.</p>
         {% endif %}
     </div>
 </body>
-</head>
+</html>

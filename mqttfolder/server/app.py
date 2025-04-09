@@ -77,4 +77,5 @@ def insert_data():
 if __name__=='__main__':
     mqtt_thread = threading.Thread(target=start_mqtt,daemon=True)
     mqtt_thread.start()
-    app.run(host='0.0.0.0', port=5002, debug=True)            
+    app.run(host='0.0.0.0', port=5002, debug=True) 
+
