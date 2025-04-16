@@ -4,6 +4,7 @@ from pymongo import MongoClient
 import paho.mqtt.client as mqtt
 import threading
 import json
+from graphs import graphs_bp
 
 app = Flask(__name__)
 client = MongoClient('localhost',27017)
@@ -74,8 +75,10 @@ def insert_data():
     else:
         return jsonify({"error": "Invalid keys in data"}), 400
 
+# Register the blueprint
+app.register_blueprint(graphs_bp)
+
 if __name__=='__main__':
     mqtt_thread = threading.Thread(target=start_mqtt,daemon=True)
     mqtt_thread.start()
-    app.run(host='0.0.0.0', port=5002, debug=True) 
-
+    app.run(host='0.0.0.0', port=5002, debug=True)
