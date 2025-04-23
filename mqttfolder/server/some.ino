@@ -1,93 +1,113 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
-#include <ArduinoJson.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 
-const char* ssid = "Haaris's A35";
-const char* password = "ArsenalItsNotJustAArsenal";
+#define TURBIDITY_PIN 35  // GPIO 35
+#define TDS_PIN       33  // GPIO 33
 
-// ThingSpeak
-const char* tsServer = "http://api.thingspeak.com/update";
-const char* apiKey = "1LQOPPC0IODLQTRO";
+const char* ssid     = "Galaxy A35";
+const char* password = "curk0958";
 
-// Flask server (change IP to your PC's IP)
-const char* flaskServer = "http://192.168.1.100:5002/insert";  // <-- Replace with your Flask server IP
+const char* serverName = "http://192.168.61.147:5002/insert";  // Flask server endpoint
 
-#define TDS_PIN 32  
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000);  // Initialize NTP client with 60s update interval
+
+float estimatePH(int turbidity, int tds) {
+  float normTurb = (turbidity - 2080) / 80.0;
+  float normTDS = (tds - 80) / 140.0;
+  float pH = 7.5 - normTurb - normTDS;
+  return pH;
+}
+
+bool isUnsafe(int turbidity, int tds, float ph) {
+  return (turbidity > 2100 || tds > 130 || ph < 6.5 || ph > 8.5);
+}
+
+String formatTimestamp() {
+  unsigned long epochTime = timeClient.getEpochTime();  // Get the epoch time (seconds since 1970)
+  
+  // Cast epochTime to time_t for localtime
+  time_t epoch = (time_t)epochTime;
+  
+  // Convert epoch time to a struct tm
+  struct tm* timeStruct = localtime(&epoch);
+  
+  // Format the timestamp as "YYYY-MM-DD HH:MM:SS"
+  String timestamp = String(timeStruct->tm_year + 1900) + "-" + 
+                     (timeStruct->tm_mon + 1 < 10 ? "0" : "") + String(timeStruct->tm_mon + 1) + "-" + 
+                     (timeStruct->tm_mday < 10 ? "0" : "") + String(timeStruct->tm_mday) + " " + 
+                     (timeStruct->tm_hour < 10 ? "0" : "") + String(timeStruct->tm_hour) + ":" + 
+                     (timeStruct->tm_min < 10 ? "0" : "") + String(timeStruct->tm_min) + ":" + 
+                     (timeStruct->tm_sec < 10 ? "0" : "") + String(timeStruct->tm_sec);
+
+  return timestamp;
+}
 
 void setup() {
   Serial.begin(115200);
   delay(1000);
 
-  analogReadResolution(12); // 12-bit resolution (0-4095)
-
-  Serial.print("Connecting to WiFi");
+  // Connect to Wi-Fi
   WiFi.begin(ssid, password);
+  Serial.print("Connecting to WiFi");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("\nWiFi connected!");
-  randomSeed(analogRead(0));
+  Serial.println("\nConnected to WiFi!");
+
+  // Start the NTP client to sync time
+  timeClient.begin();
+  while (!timeClient.update()) {
+    timeClient.forceUpdate();
+  }
 }
 
 void loop() {
-  // -------- TDS Sensor Reading --------
-  int tdsRaw = 0;
-  for (int i = 0; i < 10; i++) { 
-    tdsRaw += analogRead(TDS_PIN);
-    delay(10);
-  }
-  tdsRaw /= 10;
+  int turbidityRaw = analogRead(TURBIDITY_PIN);
+  int tdsRaw = analogRead(TDS_PIN);
+  float estimatedPH = estimatePH(turbidityRaw, tdsRaw);
 
-  // -------- Simulated Readings --------
-  int pH = random(700, 901);            // Random pH (700-900)
-  int turbidity = random(1200, 1601);   // Random Turbidity (1200-1600)
+  bool unsafe = isUnsafe(turbidityRaw, tdsRaw, estimatedPH);
 
-  // -------- Debug Output --------
-  Serial.print("TDS: "); Serial.println(tdsRaw);
-  Serial.print("pH: "); Serial.println(pH);
-  Serial.print("Turbidity: "); Serial.println(turbidity);
+  String timestamp = formatTimestamp();  // Get the current timestamp
 
-  // -------- Send to ThingSpeak (TDS only) --------
+  Serial.print(" | Raw Turbidity: ");
+  Serial.print(turbidityRaw);
+  Serial.print(" | Raw TDS: ");
+  Serial.print(tdsRaw);
+  Serial.print(" | Estimated pH: ");
+  Serial.print(estimatedPH, 2);
+  Serial.print(" | Status: ");
+  Serial.println(unsafe ? "WATER UNSAFE" : "WATER SAFE");
+  Serial.print(" | Timestamp: ");
+  Serial.println(timestamp);
+
+  // Send data to Flask server
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
-    String tsUrl = String(tsServer) + "?api_key=" + apiKey + "&field1=" + String(tdsRaw);
-    
-    http.begin(tsUrl);
-    int responseCode = http.GET();
-    
-    if (responseCode > 0) {
-      Serial.println("ThingSpeak Response: " + String(responseCode));
-    } else {
-      Serial.println("ThingSpeak Error: " + http.errorToString(responseCode));
-    }
-    http.end();
-  }
-
-  // -------- Send to Flask Server (All Data) --------
-  if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;
-    http.begin(flaskServer);
+    http.begin(serverName);
     http.addHeader("Content-Type", "application/json");
 
-    StaticJsonDocument<200> doc;
-    doc["TDS"] = tdsRaw;
-    doc["PH"] = pH;
-    doc["TURBIDITY"] = turbidity;
+    String postData = "{\"TDS\": " + String(tdsRaw) +
+                      ", \"TURBIDITY\": " + String(turbidityRaw) +
+                      ", \"PH\": " + String(estimatedPH, 2) +
+                      ", \"SAFETY\": \"" + (unsafe ? "WATER UNSAFE" : "WATER SAFE") + "\"" +
+                      ", \"TIMESTAMP\": \"" + timestamp + "\"}";
 
-    String jsonData;
-    serializeJson(doc, jsonData);
-
-    int httpResponseCode = http.POST(jsonData);
+    int httpResponseCode = http.POST(postData);
 
     if (httpResponseCode > 0) {
-      Serial.println("Flask POST success: " + String(httpResponseCode));
+      String response = http.getString();
+      Serial.println("Server Response: " + response);
     } else {
-      Serial.println("Flask POST error: " + http.errorToString(httpResponseCode));
+      Serial.print("Error code: ");
+      Serial.println(httpResponseCode);
     }
-
     http.end();
   }
 
-  delay(5000);  // 15s delay (ThingSpeak rate limit)
+  delay(5000);
 }

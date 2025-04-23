@@ -62,10 +62,10 @@
                 </div>
             </div>
             
-            <div class="timestamp-container">
-                <i class="far fa-clock timestamp-icon"></i>
-                <span class="timestamp">Last updated: {{ recent_post.timestamp }}</span>
-            </div>
+            <div class="TIMESTAMP-container">
+                <i class="far fa-clock TIMESTAMP-icon"></i>
+                <span class="TIMESTAMP">Last updated: {{ recent_post.TIMESTAMP }}</span>
+          </div>
         {% else %}
             <div class="sensor-boxes">
                 <div class="sensor-box turbidity">
@@ -105,9 +105,9 @@
                 </div>
             </div>
             
-            <div class="timestamp-container">
-                <i class="far fa-clock timestamp-icon"></i>
-                <span class="timestamp">No recent readings available</span>
+            <div class="TIMESTAMP-container">
+                <i class="far fa-clock TIMESTAMP-icon"></i>
+                <span class="TIMESTAMP">No recent readings available</span>
             </div>
         {% endif %}
         
@@ -137,6 +137,31 @@
     </div>
     
     <script>
+        function fetchLatestData() {
+            fetch("/")
+            .then((response) => response.text())
+            .then((html) => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, "text/html");
+
+            // Update sensor values
+                document.querySelector(".sensor-box.turbidity .sensor-value").textContent =
+                    doc.querySelector(".sensor-box.turbidity .sensor-value").textContent;
+                document.querySelector(".sensor-box.tds .sensor-value").textContent =
+                    doc.querySelector(".sensor-box.tds .sensor-value").textContent;
+                document.querySelector(".sensor-box.ph .sensor-value").textContent =
+                    doc.querySelector(".sensor-box.ph .sensor-value").textContent;
+
+            // Update water status
+                document.querySelector(".water-status span").textContent =
+                    doc.querySelector(".water-status span").textContent;
+
+            // Update TIMESTAMP
+                document.querySelector(".TIMESTAMP").textContent =
+                    doc.querySelector(".TIMESTAMP").textContent;
+        })
+        .catch((error) => console.error("Error fetching latest data:", error));
+}
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
             const icon = document.querySelector('.theme-toggle i');
@@ -181,6 +206,9 @@
                 }
             });
         });
+
+
+        setInterval(fetchLatestData, 5000);
     </script>
 </body>
 </html>

@@ -11,7 +11,7 @@ client = MongoClient('localhost',27017)
 db = client.flask_database
 sensor_data_collection = db.mideval
 
-VALID_KEYS={"TDS","TURBIDITY","PH"}
+VALID_KEYS={"TDS","TURBIDITY","PH","SAFETY","TIMESTAMP"}
 MQTT_BROKER = "localhost"
 MQTT_PORT = 1883
 MQTT_TOPIC = "quality"
@@ -49,7 +49,7 @@ def start_mqtt():
 @app.route("/", methods=["GET"])
 def index():
     recent_post = sensor_data_collection.find_one(sort=[("_id", -1)])
-    return render_template("index.html")
+    return render_template("index.html", recent_post=recent_post)
 
 @app.route("/data", methods=["GET"])
 def get_data():
